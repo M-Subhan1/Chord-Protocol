@@ -5,7 +5,10 @@ class ChordNode:
       self.max_nodes = 2**bits
       self.finger_table = [self] * self.bits
       self.predecessor = self
+      self.predecessors = []
       self.successor = self
+      self.range_start = (self.id + 1) % self.max_nodes
+      self.range_end = self.id
 
     def __repr__(self):
       return str(self.id)
@@ -58,8 +61,29 @@ class ChordNode:
       self.successor = self.finger_table[0]
       self.successor.notify(self)
 
-    def notify(self, node):
-      self.predecessor = node
+    def notify(self, candidate):
+        """
+        Update node's successor information with candidate node.
+        """
+        if self.successor is None or (self.range_end < candidate.id <= self.successor.range_start):
+            # If node's current successor is None or candidate is between node and its current successor,
+            # then set candidate as node's new successor.
+            self.successor = candidate
+
+        if candidate.predecessor is None or (candidate.predecessor.range_end < self.id <= candidate.id):
+            # If candidate's current predecessor is None or node is between candidate and its current predecessor,
+            # then set node as candidate's new predecessor.
+            candidate.predecessor = self
+
+        # Update predecessor list of node's successor if necessary.
+        self.successor.update_predecessors(candidate)
+
+    def update_predecessors(self, node):
+        """
+        Update predecessor list with node.
+        """
+        if node not in self.predecessors:
+            self.predecessors.append(node)
 
     def stabilize(self):
       x = self.successor.predecessor
