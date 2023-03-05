@@ -1,3 +1,5 @@
+import time
+
 class ChordNode:
     def __init__(self, id, bits):
       self.id = id
@@ -9,6 +11,7 @@ class ChordNode:
       self.successor = self
       self.range_start = (self.id + 1) % self.max_nodes
       self.range_end = self.id
+      self.next = 0
 
     def __repr__(self):
       return str(self.id)
@@ -51,9 +54,24 @@ class ChordNode:
       return None
 
     def fix_fingers(self):
-      for i in range(self.bits):
-        jump = 2**i
-        self.finger_table[i] = self.successor.find_successor((self.id + jump) % self.max_nodes)
+        """
+        Periodically updates the finger table of the current node.
+        """
+        self.next = 1  # Initialize the next finger to update
+        while True:
+            # Find the successor of the next finger
+            successor = self.find_successor((self.id + 2**(self.next-1)) % self.bits)
+
+            # Update the finger table entry for the next finger
+            self.finger_table[self.next-1] = successor
+
+            # Increment the next finger and wrap around if necessary
+            self.next += 1
+            if self.next > self.bits:
+                self.next = 1
+
+            # Wait for some time before updating the next finger
+            time.sleep(1)
 
     def join(self, node):
       self.predecessor = None
@@ -92,6 +110,17 @@ class ChordNode:
         self.successor = x
       
       self.successor.notify(self)
+
+    def print_finger_table(self):
+        for i in range(self.bits):
+            if self.finger_table[i] is not None:
+                print(f"{self.id} + {2**i} = {self.finger_table[i].id}")
+            
+    def print(self):
+        if self.successor is not None:
+            print(f"{self.id}'s successor: {self.successor.id}")
+        if self.predecessor is not None:
+            print(f"{self.id}'s predecessor: {self.predecessor.id}")
 
 class Chord:
   def __init__(self, bits):
