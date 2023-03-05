@@ -68,9 +68,13 @@ class ChordNode:
             self.finger_table[i] = self.find_successor(id)
 
     def print_finger_table(self):
+        print(f"Node {self.id} finger table:")
+
         for i in range(4):
             if self.finger_table[i] is not None:
                 print(f"{self.id} + {2**i} = {self.finger_table[i].id}")
+
+        print("")
 
 class Chord:
     def __init__(self, bits):
